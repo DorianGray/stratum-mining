@@ -18,12 +18,14 @@ import settings
 algolib = __import__(settings.ALGO_NAME)
 
 import lib.logger
-log = lib.logger.get_logger('halfnode')
-log.debug("Got to Halfnode")
 
+
+LOG = lib.logger.get_logger('halfnode')
+LOG.debug("Got to Halfnode")
 
 MY_VERSION = 31402
 MY_SUBVERSION = ".4"
+
 
 class CAddress(object):
     def __init__(self):
@@ -181,6 +183,34 @@ class CTransaction(object):
     def __repr__(self):
         return "CTransaction(nVersion=%i vin=%s vout=%s nLockTime=%i)" % (self.nVersion, repr(self.vin), repr(self.vout), self.nLockTime)
 
+
+class CMasterNodeVote(object):        
+    def __init__(self):
+        """int votes;
+        CScript pubkey;
+        int64 blockHeight"""
+
+        self.blockHeight = 0
+        self.scriptPubKey = ""
+        self.votes = 0
+
+    def deserialize(self, f):
+        self.blockHeight = struct.unpack("<q", f.read(8))[0]
+        self.scriptPubKey = deser_string(f)
+        self.votes = struct.unpack("<i", f.read(4))[0]
+
+    def serialize(self):
+        r = ""
+        r += struct.pack("<q", self.blockHeight)
+        r += ser_string(self.scriptPubKey)
+        r += struct.pack("<i", self.votes)
+        print "mnv", self.scriptPubKey, ser_string(self.scriptPubKey)
+        return r
+
+    def __repr__(self):
+        return "CMasterNodeVote(blockHeight=%d scriptPubKey=%s, votes=%d)" % (self.blockHeight, binascii.hexlify(self.scriptPubKey), self.votes)
+
+
 class CBlock(object):
     def __init__(self):
         self.nVersion = 1
@@ -190,8 +220,10 @@ class CBlock(object):
         self.nBits = 0
         self.nNonce = 0
         self.vtx = []
+        self.vmn = []
         self.hash = None
         self.signature = b""
+        self.masternode_payments = False
 
     def deserialize(self, f):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
@@ -201,6 +233,8 @@ class CBlock(object):
         self.nBits = struct.unpack("<I", f.read(4))[0]
         self.nNonce = struct.unpack("<I", f.read(4))[0]
         self.vtx = deser_vector(f, CTransaction)
+        if self.masternode_payments:
+            self.vmn = deser_vector(f, CMasterNodeVote)
         if settings.COINDAEMON_REWARD == 'POS':
             self.signature = deser_string(f)
 
@@ -213,6 +247,8 @@ class CBlock(object):
         r.append(struct.pack("<I", self.nBits))
         r.append(struct.pack("<I", self.nNonce))
         r.append(ser_vector(self.vtx))
+        if self.masternode_payments:
+            r.append(ser_vector(self.vmn))
         if settings.COINDAEMON_REWARD == 'POS':
             r.append(ser_string(self.signature))
         return ''.join(r)
@@ -254,7 +290,8 @@ class CBlock(object):
         return True
 
     def __repr__(self):
-        return "CBlock(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x vtx=%s)" % (self.nVersion, self.hashPrevBlock, self.hashMerkleRoot, time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx))
+        return "CBlock(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x vtx=%s)" % (self.nVersion, self.hashPrevBlock, self.hashMerkleRoot, time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx), repr(self.vmn))
+
 
 class msg_version(object):
     command = "version"
@@ -295,6 +332,7 @@ class msg_version(object):
     def __repr__(self):
         return "msg_version(nVersion=%i nServices=%i nTime=%s addrTo=%s addrFrom=%s nNonce=0x%016X strSubVer=%s nStartingHeight=%i)" % (self.nVersion, self.nServices, time.ctime(self.nTime), repr(self.addrTo), repr(self.addrFrom), self.nNonce, self.strSubVer, self.nStartingHeight)
 
+
 class msg_verack(object):
     command = "verack"
     def __init__(self):
@@ -305,6 +343,7 @@ class msg_verack(object):
         return ""
     def __repr__(self):
         return "msg_verack()"
+
 
 class msg_addr(object):
     command = "addr"
@@ -317,6 +356,7 @@ class msg_addr(object):
     def __repr__(self):
         return "msg_addr(addrs=%s)" % (repr(self.addrs))
 
+
 class msg_inv(object):
     command = "inv"
     def __init__(self):
@@ -328,6 +368,7 @@ class msg_inv(object):
     def __repr__(self):
         return "msg_inv(inv=%s)" % (repr(self.inv))
 
+
 class msg_getdata(object):
     command = "getdata"
     def __init__(self):
@@ -338,6 +379,7 @@ class msg_getdata(object):
         return ser_vector(self.inv)
     def __repr__(self):
         return "msg_getdata(inv=%s)" % (repr(self.inv))
+
 
 class msg_getblocks(object):
     command = "getblocks"
@@ -356,6 +398,7 @@ class msg_getblocks(object):
     def __repr__(self):
         return "msg_getblocks(locator=%s hashstop=%064x)" % (repr(self.locator), self.hashstop)
 
+
 class msg_tx(object):
     command = "tx"
     def __init__(self):
@@ -366,6 +409,7 @@ class msg_tx(object):
         return self.tx.serialize()
     def __repr__(self):
         return "msg_tx(tx=%s)" % (repr(self.tx))
+
 
 class msg_block(object):
     command = "block"
@@ -378,6 +422,7 @@ class msg_block(object):
     def __repr__(self):
         return "msg_block(block=%s)" % (repr(self.block))
 
+
 class msg_getaddr(object):
     command = "getaddr"
     def __init__(self):
@@ -388,6 +433,7 @@ class msg_getaddr(object):
         return ""
     def __repr__(self):
         return "msg_getaddr()"
+
 
 class msg_ping(object):
     command = "ping"
@@ -400,6 +446,7 @@ class msg_ping(object):
     def __repr__(self):
         return "msg_ping()"
 
+
 class msg_alert(object):
     command = "alert"
     def __init__(self):
@@ -410,7 +457,8 @@ class msg_alert(object):
         return ""
     def __repr__(self):
         return "msg_alert()"
-    
+
+
 class BitcoinP2PProtocol(Protocol):
     messagemap = {
         "version": msg_version,
@@ -425,7 +473,7 @@ class BitcoinP2PProtocol(Protocol):
         "ping": msg_ping,
         "alert": msg_alert,
     }
-   
+
     def connectionMade(self):
         peer = self.transport.getPeer()
         self.dstaddr = peer.host
@@ -442,11 +490,11 @@ class BitcoinP2PProtocol(Protocol):
         t.addrFrom.port = 0
         t.addrFrom.nTime = time.time()
         self.send_message(t)
-        
+
     def dataReceived(self, data):
         self.recvbuf += data
         self.got_data()
-        
+
     def got_data(self):
         while True:
             if len(self.recvbuf) < 4:
@@ -474,8 +522,8 @@ class BitcoinP2PProtocol(Protocol):
                 t.deserialize(f)
                 self.got_message(t)
             else:
-                print "UNKNOWN COMMAND", command, repr(msg)
-                
+                LOG.warn("UNKNOWN COMMAND %s %s" % (command, repr(msg)))
+
     def prepare_message(self, message):       
         command = message.command
         data = message.serialize()
@@ -499,10 +547,7 @@ class BitcoinP2PProtocol(Protocol):
     def send_message(self, message):
         if not self.connected:
             return
-        
-        #print message.command
-        
-        #print "send %s" % repr(message)
+
         command = message.command
         data = message.serialize()
         tmsg = "\xf9\xbe\xb4\xd9"
@@ -513,30 +558,20 @@ class BitcoinP2PProtocol(Protocol):
         h = SHA256.new(th).digest()
         tmsg += h[:4]
         tmsg += data
-        
-        #print tmsg, len(tmsg)
+
         self.transport.write(tmsg)
         self.last_sent = time.time()
-        
+
     def got_message(self, message):
         if self.last_sent + 30 * 60 < time.time():
             self.send_message(msg_ping())
 
         mname = 'do_' + message.command
-        #print mname
         if not hasattr(self, mname):
             return
 
         method = getattr(self, mname)
         method(message)
-
-#        if message.command == "tx":
-#            message.tx.calc_sha256()
-#            sha256 = message.tx.sha256
-#            pubkey = binascii.hexlify(message.tx.vout[0].scriptPubKey)
-#            txlock.acquire()
-#            tx.append([str(sha256), str(time.time()), str(self.dstaddr), pubkey])
-#            txlock.release()
 
     def do_version(self, message):
         #print message

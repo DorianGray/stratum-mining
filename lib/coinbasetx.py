@@ -4,7 +4,10 @@ import struct
 import util
 import settings
 import lib.logger
-log = lib.logger.get_logger('coinbasetx')
+
+
+LOG = lib.logger.get_logger('coinbasetx')
+
 
 class CoinbaseTransaction(halfnode.CTransaction):
     '''Construct special transaction used for coinbase tx.
@@ -12,12 +15,16 @@ class CoinbaseTransaction(halfnode.CTransaction):
     scriptSig template.'''
     
     extranonce_type = '>Q'
-    extranonce_placeholder = struct.pack(extranonce_type, int('f000000ff111111f', 16))
+    extranonce_placeholder = struct.pack(
+        extranonce_type,
+        int('f000000ff111111f', 16),
+    )
     extranonce_size = struct.calcsize(extranonce_type)
 
-    def __init__(self, timestamper, coinbaser, value, flags, height, commitment = None, data='', ntime=None):
+    def __init__(self, timestamper, coinbaser, payee, value, flags, height,
+                 commitment = None, data='', ntime=None):
         super(CoinbaseTransaction, self).__init__()
-        log.debug("Got to CoinBaseTX")
+        LOG.debug("Got to CoinBaseTX")
         #self.extranonce = 0
         
         if len(self.extranonce_placeholder) != self.extranonce_size:
@@ -33,6 +40,15 @@ class CoinbaseTransaction(halfnode.CTransaction):
         )
                 
         tx_in.scriptSig = tx_in._scriptSig_template[0] + self.extranonce_placeholder + tx_in._scriptSig_template[1]
+
+        tx_out2 = None 
+        if payee is not None :
+            value2 = value / 10
+            value -= value2
+
+            tx_out2 = halfnode.CTxOut()
+            tx_out2.nValue = value2
+            tx_out2.scriptPubKey = payee
     
         tx_out = halfnode.CTxOut()
         tx_out.nValue = value
@@ -46,6 +62,8 @@ class CoinbaseTransaction(halfnode.CTransaction):
        
         self.vin.append(tx_in)
         self.vout.append(tx_out)
+        if tx_out2 is not None:
+            self.vout.append(tx_out2)
         
         if(commitment):
             txout_commitment = halfnode.CTxOut()

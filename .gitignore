@@ -2,9 +2,5 @@
 conf/config.py
 *.log
 LOG
-
-#IDEA
-.idea
-*.iml
-*.ipr
-*.iws
+*.egg-info
+/.venv

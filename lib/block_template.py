@@ -61,7 +61,12 @@ class BlockTemplate(halfnode.CBlock):
         '''Convert getblocktemplate result into BlockTemplate instance'''
         
         commitment = None
-        nTime = data['curtime'] if data.has_key('curtime') else None
+        nTime = data['curtime'] if 'curtime' in data else None
+        payee = (
+            util.script_to_address(data['payee'])
+            if 'payee' in data and data['payee'] != '' else
+            None
+        )
 
         if settings.COINDAEMON_HAS_SEGWIT:
             txids = [] 
@@ -88,9 +93,17 @@ class BlockTemplate(halfnode.CBlock):
             txhashes = [None] + [ util.ser_uint256(int(t['hash'], 16)) for t in data['transactions'] ]
             mt = merkletree.MerkleTree(txhashes)
 
-        coinbase = CoinbaseTransaction(self.timestamper, self.coinbaser, data['coinbasevalue'],
-                                              data['coinbaseaux']['flags'], data['height'],
-                                              commitment, settings.COINBASE_EXTRAS, nTime)
+        coinbase = self.coinbase_transaction_class(
+            self.timestamper,
+            self.coinbaser,
+            payee,
+            data['coinbasevalue'],
+            data['coinbaseaux']['flags'],
+            data['height'],
+            commitment,
+            settings.COINBASE_EXTRAS,
+            nTime,
+        )
 
         self.height = data['height']
         self.nVersion = data['version']
@@ -99,7 +112,14 @@ class BlockTemplate(halfnode.CBlock):
         self.hashMerkleRoot = 0
         self.nTime = 0
         self.nNonce = 0
+        self.masternode_payments = data['masternode_payments']
         self.vtx = [ coinbase, ]
+
+        if 'votes' in data:
+            for vote in data['votes']:
+                v = halfnode.CMasterNodeVote()
+                v.deserialize(StringIO.StringIO(binascii.unhexlify(vote)))
+                self.vmn.append(v)
         
         for tx in data['transactions']:
             t = TxBlob()
@@ -180,7 +200,6 @@ class BlockTemplate(halfnode.CBlock):
         self.nNonce = nonce
         self.vtx[0].set_extranonce(extranonce1_bin + extranonce2_bin)        
         self.sha256 = None # We changed block parameters, let's reset sha256 cache
-
 
     def serialize(self):
         r = []
