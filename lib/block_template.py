@@ -112,7 +112,6 @@ class BlockTemplate(halfnode.CBlock):
         self.hashMerkleRoot = 0
         self.nTime = 0
         self.nNonce = 0
-        self.masternode_payments = data['masternode_payments']
         self.vtx = [ coinbase, ]
 
         if 'votes' in data:
