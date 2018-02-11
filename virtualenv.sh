@@ -10,7 +10,7 @@ fi
 
 EZ="$PY -m easy_install"
 VENV="$PY -m virtualenv"
-$VENV 2&>1 > /dev/null
+$VENV 2>&1 > /dev/null
 if [ ! $? -eq 0 ]; then
   $EZ -U virtualenv
 fi
