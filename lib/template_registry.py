@@ -247,12 +247,16 @@ class TemplateRegistry(object):
         header_bin = job.serialize_header(merkle_root_int, ntime_bin, nonce_bin)
     
         # 4. Reverse header and compare it with target of the user
-        hash_bin = algolib.getPoWHash(''.join([ header_bin[i*4:i*4+4][::-1] for i in range(0, 20) ]))
+        reversed_header = ''.join([
+            header_bin[i * 4:i * 4 + 4][::-1]
+            for i in range(0, 20)
+        ])
+        hash_bin = algolib.getPoWHash(reversed_header)
         hash_int = util.uint256_from_str(hash_bin)
         scrypt_hash_hex = "%064x" % hash_int
         header_hex = binascii.hexlify(header_bin)
         if settings.CUSTOM_HEADER != None:
-           header_hex = header_hex+ settings.CUSTOM_HEADER
+           header_hex = header_hex + settings.CUSTOM_HEADER
 
         target_user = self.diff_to_target(difficulty)
         if hash_int > target_user:

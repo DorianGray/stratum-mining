@@ -1,20 +1,13 @@
 #include <Python.h>
 
-#include "argon2.h"
+#include "argon2d/argon2.h"
 
-static void Argon2dHash(const char *input, int length, char *output)
-{
-    // uint32_t t_cost = 1; // 1 iteration
-    // uint32_t m_cost = 4096; // use 4MB
-    // uint32_t parallelism = 1; // 1 thread, 2 lanes
-    
-    //yescrypt_bsty((const uint8_t*)input, length, (const uint8_t*)input, length, 2048, 8, 1, (uint8_t*)output, 32);
-    argon2d_hash_raw(1, 4096, 1, (const uint8_t*)input, length, (const uint8_t*)input, length, (uint8_t*)output, 32);
-    
-}
 
-static PyObject *argon2d_gethash(PyObject *self, PyObject *args)
+
+static PyObject *argon2d_getpowhash(PyObject *self, PyObject *args)
 {
+    void* ctx;
+    WolfArgon2dAllocateCtx(&ctx);
     char *output;
     PyObject *value;
 #if PY_MAJOR_VERSION >= 3
@@ -22,16 +15,15 @@ static PyObject *argon2d_gethash(PyObject *self, PyObject *args)
 #else
     PyStringObject *input;
 #endif
-    int length;
-    if (!PyArg_ParseTuple(args, "Si", &input, &length))
+    if (!PyArg_ParseTuple(args, "S", &input))
         return NULL;
     Py_INCREF(input);
     output = PyMem_Malloc(32);
 
 #if PY_MAJOR_VERSION >= 3
-    Argon2dHash((char *)PyBytes_AsString((PyObject*) input), 80, output);
+    WolfArgon2dPoWHash(output(char *), ctx, PyBytes_AsString((PyObject*) input));
 #else
-    Argon2dHash((char *)PyString_AsString((PyObject*) input), 80, output);
+    WolfArgon2dPoWHash(output, ctx, (char *)PyString_AsString((PyObject*) input));
 #endif
     Py_DECREF(input);
 #if PY_MAJOR_VERSION >= 3
@@ -44,7 +36,7 @@ static PyObject *argon2d_gethash(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef Argon2dMethods[] = {
-    { "getHash", argon2d_gethash, METH_VARARGS, "Returns the Argon2d hash" },
+    { "getPoWHash", argon2d_getpowhash, METH_VARARGS, "Returns the Argon2d hash" },
     { NULL, NULL, 0, NULL }
 };
 

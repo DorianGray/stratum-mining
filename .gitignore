@@ -1,6 +1,6 @@
 *.pyc
-conf/config.py
 *.log
+/conf/config.py
 LOG
 *.egg-info
 /.venv
