@@ -7,8 +7,9 @@ from twisted.application.service import (
 # Run listening when mining service is ready
 on_startup = defer.Deferred()
 
-import stratum
 import lib.settings as settings
+
+import stratum
 # Bootstrap Stratum framework
 application = stratum.setup(on_startup)
 IProcess(application).processName = settings.STRATUM_MINING_PROCESS_NAME
@@ -17,8 +18,12 @@ IProcess(application).processName = settings.STRATUM_MINING_PROCESS_NAME
 import mining
 
 from mining.interfaces import Interfaces
-from mining.interfaces import WorkerManagerInterface, TimestamperInterface, \
-                            ShareManagerInterface, ShareLimiterInterface
+from mining.interfaces import (
+    WorkerManagerInterface,
+    TimestamperInterface,
+    ShareManagerInterface,
+    ShareLimiterInterface,
+)
 
 if settings.VARIABLE_DIFF == True:
     from mining.basic_share_limiter import BasicShareLimiter
