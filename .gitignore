@@ -6,3 +6,4 @@ LOG
 /.venv
 /externals/argon2d-hash/build
 /externals/argon2d-hash/argon2d_hash.so
+/twistd.pid

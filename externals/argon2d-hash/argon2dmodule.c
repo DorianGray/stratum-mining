@@ -21,7 +21,7 @@ static PyObject *argon2d_getpowhash(PyObject *self, PyObject *args)
     output = PyMem_Malloc(32);
 
 #if PY_MAJOR_VERSION >= 3
-    WolfArgon2dPoWHash(output(char *), ctx, PyBytes_AsString((PyObject*) input));
+    WolfArgon2dPoWHash(output, ctx, (char *)PyBytes_AsString((PyObject*) input));
 #else
     WolfArgon2dPoWHash(output, ctx, (char *)PyString_AsString((PyObject*) input));
 #endif
@@ -32,6 +32,7 @@ static PyObject *argon2d_getpowhash(PyObject *self, PyObject *args)
     value = Py_BuildValue("s#", output, 32);
 #endif
     PyMem_Free(output);
+    WolfArgon2dFreeCtx(ctx);
     return value;
 }
 
