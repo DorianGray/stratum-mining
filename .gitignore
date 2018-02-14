@@ -1,9 +1,15 @@
-*.pyc
-*.log
-/conf/config.py
-LOG
-*.egg-info
+# APP stuff
+/config.py
 /.venv
 /externals/argon2d-hash/build
 /externals/argon2d-hash/argon2d_hash.so
 /twistd.pid
+*.log
+
+# Optional SSL
+server.key
+server.crt
+
+# Python stuff
+*.pyc
+*.egg-info

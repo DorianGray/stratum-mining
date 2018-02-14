@@ -6,7 +6,7 @@ import signal
 import Cache
 from sets import Set
 
-import lib.settings as settings
+import stratum.settings as settings
 
 import lib.logger
 log = lib.logger.get_logger('DBInterface')
@@ -186,6 +186,8 @@ class DBInterface():
                 self.dbi.insert_worker(uid, username, password)
                 self.cache.set(username, password)
                 defer.returnValue(True)
+        elif not settings.USERS_AUTOADD and not settings.USERS_CHECK_PASSWORD:
+            defer.returnValue(True)
         
         log.info("Authentication for %s failed" % username)
         defer.returnValue(False)

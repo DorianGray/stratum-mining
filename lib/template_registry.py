@@ -5,7 +5,7 @@ import StringIO
 import settings
 algolib = __import__(settings.ALGO_NAME)
 import lib.logger
-import lib.settings as settings
+import stratum.settings as settings
 from twisted.internet import defer
 from lib.exceptions import SubmitException
 from mining.interfaces import Interfaces
@@ -92,7 +92,7 @@ class TemplateRegistry(object):
             if ph != prevhash:
                 del self.prevhashes[ph]
                 
-        log.info("New template for %s" % prevhash)
+        log.debug("New template for %s" % prevhash)
 
         if new_block:
             # Tell the system about new block
@@ -268,7 +268,7 @@ class TemplateRegistry(object):
         # Mostly for debugging purposes
         target_info = self.diff_to_target(100000)
         if hash_int <= target_info:
-            log.info("Yay, share with diff above 100000")
+            log.debug("Yay, share with diff above 100000")
 
         # Algebra tells us the diff_to_target is the same as hash_to_diff
         share_diff = int(self.diff_to_target(hash_int))

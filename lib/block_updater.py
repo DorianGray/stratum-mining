@@ -45,14 +45,14 @@ class BlockUpdater(object):
             else:
                 current_prevhash = None
                 
-            log.info("Checking for new block.")
+            log.debug("Checking for new block.")
             prevhash = (yield self.bitcoin_rpc.prevhash())
             if prevhash and prevhash != current_prevhash:
-                log.info("New block! Prevhash: %s" % prevhash)
+                log.debug("New block! Prevhash: %s" % prevhash)
                 update = True
             
             elif Interfaces.timestamper.time() - self.registry.last_update >= settings.MERKLE_REFRESH_INTERVAL:
-                log.info("Merkle update! Prevhash: %s" % prevhash)
+                log.debug("Merkle update! Prevhash: %s" % prevhash)
                 update = True
                 
             if update:

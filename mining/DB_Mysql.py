@@ -1,6 +1,6 @@
 import time
 import hashlib
-import lib.settings as settings
+import stratum.settings as settings
 import lib.logger
 from twisted.enterprise import adbapi
 from twisted.internet import defer

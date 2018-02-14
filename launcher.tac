@@ -7,9 +7,8 @@ from twisted.application.service import (
 # Run listening when mining service is ready
 on_startup = defer.Deferred()
 
-import lib.settings as settings
-
 import stratum
+import stratum.settings as settings
 # Bootstrap Stratum framework
 application = stratum.setup(on_startup)
 IProcess(application).processName = settings.STRATUM_MINING_PROCESS_NAME

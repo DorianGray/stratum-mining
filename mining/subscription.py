@@ -1,7 +1,7 @@
 from stratum.pubsub import Pubsub, Subscription
 from mining.interfaces import Interfaces
 
-import lib.settings as settings
+import stratum.settings as settings
 import lib.logger
 log = lib.logger.get_logger('subscription')
 

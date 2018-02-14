@@ -1,5 +1,5 @@
 ''' A simple wrapper for pylibmc. It can be overwritten with simple hashing if necessary '''
-import lib.settings as settings
+import stratum.settings as settings
 import lib.logger
 log = lib.logger.get_logger('Cache')
 

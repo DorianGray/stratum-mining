@@ -1,4 +1,4 @@
-import lib.settings as settings
+import stratum.settings as settings
 
 import lib.logger
 log = lib.logger.get_logger('BasicShareLimiter')
