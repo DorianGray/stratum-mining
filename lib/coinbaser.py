@@ -31,7 +31,7 @@ class SimpleCoinbaser(object):
     def address_check(self, result):
         if result['isvalid'] and result['ismine']:
             self.is_valid = True
-            log.info("Coinbase address '%s' is valid" % self.address)
+            log.debug("Coinbase address '%s' is valid" % self.address)
             if 'address' in result:
                log.debug("Address = %s " % result['address'])
                self.address = result['address']

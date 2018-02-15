@@ -40,7 +40,7 @@ class MiningSubscription(Subscription):
                 pass
         
         cnt = Pubsub.get_subscription_count(cls.event)
-        log.info("BROADCASTED to %d connections in %.03f sec" % (cnt, (Interfaces.timestamper.time() - start)))
+        log.debug("BROADCASTED to %d connections in %.03f sec" % (cnt, (Interfaces.timestamper.time() - start)))
         
     def _finish_after_subscribe(self, result):
         '''Send new job to newly subscribed client'''

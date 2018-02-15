@@ -138,7 +138,7 @@ class DBInterface():
                 
             # try to do the import, if we fail, log the error and put the data back in the queue
             try:
-                log.info("Inserting %s Share Records", datacnt)
+                log.debug("Inserting %s Share Records", datacnt)
                 dbi.import_shares(sqldata)
             except Exception as e:
                 log.error("Insert Share Records Failed: %s", e.args[0])
