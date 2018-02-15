@@ -125,8 +125,3 @@ def setup(on_startup):
     
     log.info("MINING SERVICE IS READY")
     on_startup.callback(True)
-
-
-
-
-

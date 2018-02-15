@@ -58,7 +58,7 @@ class CoinbaseTransaction(halfnode.CTransaction):
            self.nTime = ntime
 
         if settings.COINDAEMON_TX != False:
-            self.strTxComment = "http://github.com/ahmedbodi/stratum-mining"
+            self.strTxComment = "http://github.com/DorianGray/stratum-mining"
        
         self.vin.append(tx_in)
         self.vout.append(tx_out)
